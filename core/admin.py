@@ -39,7 +39,7 @@ class BatchAdmin(admin.ModelAdmin):
 
 @admin.register(Faculty)
 class FacultyAdmin(admin.ModelAdmin):
-    list_display = ['name', 'employee_id', 'department', 'email']
+    list_display = ['name', 'employee_id', 'department', 'email', 'user']
     list_filter = ['department']
     search_fields = ['name', 'employee_id', 'email']
 

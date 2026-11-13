@@ -39,6 +39,13 @@
                     <span class="text">My Timetable</span>
                 </a>
 
+                {% elif user.role == 'teacher' %}
+                <a href="{% url 'teacher_schedule' %}" class="nav-item {% if request.resolver_match.url_name == 'teacher_schedule' %}active{% endif %}">
+                  <span class="icon">📅</span><span class="text">My Schedule</span>
+                </a>
+                <a href="{% url 'manual_entry_create' %}" class="nav-item {% if request.resolver_match.url_name == 'manual_entry_create' %}active{% endif %}">
+                  <span class="icon">✏️</span><span class="text">Add Class</span>
+                </a>
                 {% else %}
                 {# ── All other roles ── #}
 

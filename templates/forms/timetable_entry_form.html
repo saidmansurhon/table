@@ -9,8 +9,25 @@
         <h2>{{ title }}</h2>
     </div>
     <div class="card-body">
+        {# existing-class-reschedule-v1: clarify CREATE versus UPDATE #}
+        {% if editing_entry %}
+        <div role="status" style="margin-bottom:1rem;padding:.9rem 1rem;border-radius:8px;border:1px solid #6366f1;background:rgba(99,102,241,.10);">
+            <strong>Editing existing class #{{ editing_entry.pk }}</strong>
+            <p style="margin:.4rem 0 0;">Save or Use this suggestion MOVES this existing lesson; it does not create a duplicate.</p>
+        </div>
+        {% else %}
+        <div role="note" style="margin-bottom:1rem;padding:.9rem 1rem;border-radius:8px;border:1px solid #f59e0b;background:rgba(245,158,11,.10);">
+            <strong>This page ADDS a new class.</strong>
+            <p style="margin:.4rem 0 0;">To move an existing lesson, open View Timetable, select a batch and choose Edit / Reschedule on its card.</p>
+        </div>
+        {% endif %}
         <form method="post">
             {% csrf_token %}
+            {% if form.non_field_errors %}
+              <div class="alert alert-error" role="alert" style="margin:1rem 0;white-space:pre-wrap;">
+                {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+              </div>
+            {% endif %}
             {% for field in form %}
             <div class="form-group">
                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
@@ -29,10 +46,33 @@
             {% endfor %}
             
             <div class="form-actions">
+                <button type="submit" class="btn btn-secondary" name="preview" value="1">Find suggestions</button>
                 <button type="submit" class="btn btn-primary">Save</button>
                 <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
+
+        {% if suggestions_requested %}
+        <section id="smart-suggestions-container" class="card" style="margin-top:1.2rem;border:1px solid var(--border, #374151);padding:1rem">
+            <h3>Conflict Resolver — suggested alternatives</h3>
+            <p style="opacity:.85">The system checks room, teacher and batch availability. Nothing changes until you choose an option.</p>
+            {% if suggestions %}
+                <div style="display:grid;gap:.8rem">
+                {% for option in suggestions %}
+                    <form method="post" style="padding:.8rem;border:1px solid var(--border,#374151);border-radius:8px">
+                        {% csrf_token %}
+                        <div style="font-weight:600;margin-bottom:.25rem">{{ option.heading }}</div>
+                        <p style="margin:.2rem 0 .7rem;opacity:.9">{{ option.label }}</p>
+                        <button class="btn btn-primary" type="submit" name="apply_suggestion" value="{{ option.token }}">Use this suggestion</button>
+                    </form>
+                {% endfor %}
+                </div>
+            {% else %}
+                <p><strong>No feasible one-class changes found.</strong> Try another requested slot. Complex exchanges involving more than one blocking class require a coordinator.</p>
+            {% endif %}
+        </section>
+        {% endif %}
+
     </div>
 </div>
 {% endblock %}

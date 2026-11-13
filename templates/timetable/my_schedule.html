@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}My Schedule{% endblock %}
+{% block page_title %}My Schedule{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;">
+    <h2>Manually scheduled classes</h2>
+    {% if has_teacher_link %}<a href="{% url 'manual_entry_create' %}" class="btn btn-primary">+ Add class</a>{% endif %}
+  </div>
+  <div class="card-body">
+    {% if not has_teacher_link %}
+      <p>Your teacher account must be linked to a Faculty record by an administrator.</p>
+    {% elif not entries %}
+      <p>No classes yet. Choose <strong>Add class</strong> to start.</p>
+    {% else %}
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;text-align:left;">
+          <thead><tr><th>Day</th><th>Time</th><th>Subject</th><th>Batch</th><th>Teacher</th><th>Room</th><th>Actions</th></tr></thead>
+          <tbody>
+          {% for entry in entries %}
+            <tr style="border-top:1px solid var(--border);">
+              <td style="padding:.75rem .4rem">{{ entry.get_day_of_week_display }}</td>
+              <td>{{ entry.start_time }}:00 – {{ entry.end_time }}:00</td>
+              <td>{{ entry.subject }}</td><td>{{ entry.batch }}</td>
+              <td>{{ entry.faculty.name }}</td><td>{{ entry.room }}</td>
+              <td>
+              {% if not entry.combined_class_id %}
+                <a href="{% url 'manual_entry_edit' entry.pk %}" class="btn btn-secondary">Edit</a>
+                <form method="post" action="{% url 'manual_entry_delete' entry.pk %}" style="display:inline" onsubmit="return confirm('Delete this class?');">
+                  {% csrf_token %}<button type="submit" class="btn btn-secondary">Delete</button>
+                </form>
+              {% else %}<small>Combined class</small>{% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

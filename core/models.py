@@ -6,6 +6,7 @@ class User(AbstractUser):
     ROLE_CHOICES = [
         ('admin', 'Admin'),
         ('coordinator', 'Department Coordinator'),
+        ('teacher', 'Teacher'),
         ('reviewer', 'Reviewer'),
         ('class_advisor', 'Class Advisor'),
         ('student', 'Student'),
@@ -126,6 +127,7 @@ class Batch(models.Model):
 
 
 class Faculty(models.Model):
+    user = models.OneToOneField('User', on_delete=models.SET_NULL, null=True, blank=True, related_name='teaching_profile', help_text='Login account used by this teacher')
     name = models.CharField(max_length=200)
     employee_id = models.CharField(max_length=50, unique=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='faculty')

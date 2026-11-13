@@ -236,6 +236,8 @@ def dashboard(request):
     # Students go directly to their timetable
     if request.user.role == 'student':
         return redirect('student_timetable')
+    if request.user.role == 'teacher':
+        return redirect('teacher_schedule')
     context = {
         'total_batches': Batch.objects.count(),
         'total_faculty': Faculty.objects.count(),
@@ -1083,6 +1085,7 @@ def timetable_view(request):
     else:
         batches = Batch.objects.select_related('department').all()
     timetable_grid = {}
+    editable_entry_ids = set()  # Authorized existing entries only.
     spanned_cells = {}
     combined_grid = {}
     combined_spanned = {}
@@ -1092,7 +1095,10 @@ def timetable_view(request):
         entries = TimetableEntry.objects.filter(batch_id=batch_id).select_related(
             'subject', 'faculty', 'room', 'combined_class'
         ).prefetch_related('combined_class__batches').order_by('day_of_week', 'start_time')
+        from .manual_schedule import can_manage_entry
         for entry in entries:
+            if can_manage_entry(request.user, entry):
+                editable_entry_ids.add(entry.pk)
             day = entry.day_of_week
             if day not in timetable_grid:
                 timetable_grid[day] = {}
@@ -1125,6 +1131,7 @@ def timetable_view(request):
         'batches': batches,
         'selected_batch': batch_id,
         'timetable_grid': timetable_grid,
+        'editable_entry_ids': editable_entry_ids,
         'spanned_cells': spanned_cells,
         'combined_grid': combined_grid,
         'combined_spanned': combined_spanned,
@@ -1138,19 +1145,9 @@ def timetable_view(request):
 
 
 @login_required
-@role_required(['admin', 'coordinator', 'class_advisor'])
 def manual_entry_create(request):
-    if request.method == 'POST':
-        form = TimetableEntryForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Manual timetable entry created successfully.')
-            return redirect('timetable_view')
-    else:
-        form = TimetableEntryForm()
-    return render(request, 'forms/timetable_entry_form.html', {'form': form, 'title': 'Create Manual Entry'})
-
-
+    from .manual_schedule import manual_entry_create as impl
+    return impl(request)
 @login_required
 def combined_class_list(request):
     combined_classes = CombinedClass.objects.prefetch_related('batches').select_related('subject', 'faculty', 'room').all()

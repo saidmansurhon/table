@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import manual_schedule
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
@@ -57,6 +58,9 @@ urlpatterns = [
     path('timetable/generate-all/', views.generate_all_timetables, name='generate_all_timetables'),
     path('timetable/view/', views.timetable_view, name='timetable_view'),
     path('timetable/manual-entry/', views.manual_entry_create, name='manual_entry_create'),
+    path('timetable/my-schedule/', manual_schedule.teacher_schedule, name='teacher_schedule'),
+    path('timetable/manual-entry/<int:pk>/edit/', manual_schedule.manual_entry_edit, name='manual_entry_edit'),
+    path('timetable/manual-entry/<int:pk>/delete/', manual_schedule.manual_entry_delete, name='manual_entry_delete'),
     path('timetable/combined/', views.combined_class_list, name='combined_class_list'),
     path('timetable/combined/create/', views.combined_class_create, name='combined_class_create'),
     path('timetable/combined/<int:pk>/edit/', views.combined_class_edit, name='combined_class_edit'),
